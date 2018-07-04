@@ -11,7 +11,7 @@ import javax.bluetooth.*;
 import javax.microedition.io.*;
 
 public class BluetoothServer implements Runnable {
-	
+
 	int 	isConnected;
 	int 	closeRequest;
 
@@ -20,24 +20,24 @@ public class BluetoothServer implements Runnable {
 
 	byte 	outputBuffer[];
 	int 	outputBufferSize;
-	
+
 	final static long BT_NOACTIVITY_TIMEOUT=60000L;
 
 	// The uid of the service, it has to be unique,
 	// It can be generated randomly
-	public final UUID uuid = new UUID(                              
-		"27012f0c68af4fbf8dbe6bbaf7aa432a",
-		false); 
-		
-	// The name of the service
-	public final String name = "BluetoothChat";                       
+	public final UUID uuid = new UUID(
+			"27012f0c68af4fbf8dbe6bbaf7aa432a",
+			false);
 
-			 //the service url
-	public final String url  =  "btspp://localhost:" 
-		+ uuid        
-		+ ";name=" + name 
+	// The name of the service
+	public final String name = "BluetoothChat";
+
+	//the service url
+	public final String url  =  "btspp://localhost:"
+		+ uuid
+		+ ";name=" + name
 		+ ";authenticate=false;encrypt=false;";
-	
+
 	LocalDevice local = null;
 	StreamConnectionNotifier server = null;
 	StreamConnection conn = null;
@@ -56,83 +56,90 @@ public class BluetoothServer implements Runnable {
 	public int open() {
 		closeRequest=0;
 		new Thread(this).start();
-		
+
 		return 1;
 	}
-	
+
 	synchronized int addToInputBuffer(byte buf[], int off, int len) {
 		if((inputBufferSize+len)>inputBuffer.length) return 0;
-		
+
 		System.arraycopy(buf, 0, inputBuffer, inputBufferSize, len);
-		
+
 		inputBufferSize+=len;
-		
+
 		return 1;
 	}
-	
+
 	public synchronized int read(byte buf[], int off, int len) {
 		if(len>inputBufferSize) len=inputBufferSize;
-		
+
 		System.arraycopy(inputBuffer, 0, buf, off, len);
-		
+
 		if(len-inputBufferSize>0) System.arraycopy(inputBuffer, len, inputBuffer, 0, len-inputBufferSize);
-		
+
 		inputBufferSize-=len;
-		
+
 		return len;
 	}
 
 	public synchronized int write(byte buf[], int off, int len) {
 		if(len>outputBuffer.length-outputBufferSize) len=outputBuffer.length-outputBufferSize;
-		
+
 		if(len<=0) return 0;
-		
+
 		System.arraycopy(buf, off, outputBuffer, outputBufferSize, len);
-		
+
 		outputBufferSize+=len;
-		
+
 		return len;
 	}
-	
+
 	public int available() {
 		return inputBufferSize;
 	}
-	
+
 	public int close() {
 		closeRequest=1;
 		return 1;
 	}
 
 	public void listen() {
-		while(true) {
-			System.out.println("Start advertising service...");
-			
-			server = (StreamConnectionNotifier)Connector.open(url);
-			
-			System.out.println("Waiting for incoming connection on url="+url);
-			
-			conn = server.acceptAndOpen();
-			
-			isConnected=1;
-				
-			System.out.println("Client Connected...");
-				
-			DataInputStream din   = new DataInputStream(conn.openInputStream());
-				
-			DataOutputStream dout   = new DataOutputStream(conn.openOutputStream());
-				
-			lastReceivedTime=System.currentTimeMillis();
+		long lastReceivedTime=System.currentTimeMillis();
+		byte buf[]=new byte[1024];
+		int i, v, lastv=1234;
 
+		try {
 			while(true) {
+				System.out.println("Start advertising service...");
+
+				server = (StreamConnectionNotifier)Connector.open(url);
+
+				System.out.println("Waiting for incoming connection on url="+url);
+
+				conn = server.acceptAndOpen();
+
+				isConnected=1;
+
+				System.out.println("Client Connected...");
+
+				DataInputStream din = new DataInputStream(conn.openInputStream());
+
+				DataOutputStream dout = new DataOutputStream(conn.openOutputStream());
+
+				lastReceivedTime = System.currentTimeMillis();
+
+				while(true) {
 					Thread.sleep(500);
 
 					if(closeRequest==1) break;
-					
-					try { v=din.available(); }
-					catch(Exception e) {
+
+					try {
+						v=din.available();
+					} catch(Exception e) {
 						System.out.println("device seems to be disconnected... closing connection.");
 						break;
 					}
+
 					if(v>0) {
 						v=din.read(buf);
 						if(v==-1) {
@@ -140,10 +147,11 @@ public class BluetoothServer implements Runnable {
 							break;
 						}
 						addToInputBuffer(buf, 0, v);
-						lastReceivedTime=System.currentTimeMillis();
+						lastReceivedTime = System.currentTimeMillis();
 						//for(i=0; i<v; i++) System.out.println("received="+buf[i]);
 						//dout.write(buf, 0, v);
 					}
+
 					if(outputBufferSize>0) {
 						synchronized (this) {
 							try {
@@ -156,50 +164,54 @@ public class BluetoothServer implements Runnable {
 						}
 					}
 					/*
-					if(v==0) {
-						if(System.currentTimeMillis()-lastReceivedTime>BT_NOACTIVITY_TIMEOUT) {
-							System.out.println("Timeout reached : noactivity closing connection");
-							break;
-						}
-					}
-					*/
+					   if(v==0) {
+					   if(System.currentTimeMillis()-lastReceivedTime>BT_NOACTIVITY_TIMEOUT) {
+					   System.out.println("Timeout reached : noactivity closing connection");
+					   break;
+					   }
+					   }
+					 */
 					if(lastv!=v) {
 						System.out.println("v="+v);
 						lastv=v;
-					} 
+					}
 				}
 				/*while(true){
-                String cmd = "";
-                char c;
-                while (((c = din.readChar()) > 0) && (c!='\n') ){
-                    cmd = cmd + c;
-                }
-                System.out.println("Received " + cmd);
-            }*/
+				  String cmd = "";
+				  char c;
+				  while (((c = din.readChar()) > 0) && (c!='\n') ){
+				  cmd = cmd + c;
+				  }
+				  System.out.println("Received " + cmd);
+				  }*/
 				din.close();
 				conn.close();
 				server.close();
-				
+
 				if(closeRequest==1) break;
 			}
+		} catch(Exception e) {
+			System.out.println(e.toString());
+			return;
+		}
 	}
 
 	public void run() {
-		long lastReceivedTime=System.currentTimeMillis();
-		byte buf[]=new byte[1024];
-		int i, v, lastv=1234;
-
 		try {
-            local = LocalDevice.getLocalDevice();
-			
-			isConnected=0;				
-		
-			local.setDiscoverable(DiscoveryAgent.GIAC);
-        } catch (BluetoothStateException ex) {
-        	System.out.println("Cannot get local device : " + ex.toString());
-      		return;
-        }
+			isConnected=0;
 
-        listen();
-    }
+			local = LocalDevice.getLocalDevice();
+
+			// http://www.bluecove.org/bluecove/apidocs/javax/bluetooth/DiscoveryAgent.html
+			// Sets the way devices are recognized with bluetooth
+			local.setDiscoverable(DiscoveryAgent.GIAC);
+
+			System.out.println(local.getProperty("bluetooth.api.version"));
+		} catch (BluetoothStateException ex) {
+			System.out.println("Cannot get local device : " + ex.toString());
+			return;
+		}
+
+		listen();
+	}
 }

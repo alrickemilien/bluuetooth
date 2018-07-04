@@ -2,4 +2,4 @@ JAVA_HOME=/usr/java/default
 JAVA_BIN=$JAVA_HOME/bin/java
 PATH_TO_MAIN=com.cotep.bluetooth.plugin.SystemBoot
 
-$JAVA_BIN -cp target/bluetooth-plugin-1.0-SNAPSHOT.jar $PATH_TO_MAIN
+$JAVA_BIN -cp target/bluetooth-plugin-1.0-SNAPSHOT-jar-with-dependencies.jar $PATH_TO_MAIN

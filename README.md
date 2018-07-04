@@ -1,7 +1,7 @@
 # bluetooth-plugin
 
-##build
-mvn install
+#build
+mvn clean compile assembly:single
 
-##run
+#run
 ./run
