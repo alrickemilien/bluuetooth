@@ -28,8 +28,8 @@ public class BluetoothClient implements DiscoveryListener {
 			//display local device address and name
 			LocalDevice localDevice = LocalDevice.getLocalDevice();
 
-			System.out.println("Address: "+localDevice.getBluetoothAddress());
-			System.out.println("Name: "+localDevice.getFriendlyName());
+			System.out.println("Address: " + localDevice.getBluetoothAddress());
+			System.out.println("Name: " + localDevice.getFriendlyName());
 
 			//find devices
 			DiscoveryAgent agent = localDevice.getDiscoveryAgent();
@@ -57,6 +57,7 @@ public class BluetoothClient implements DiscoveryListener {
 				return;
 			}
 
+
 			//print bluetooth device addresses and names in the format [ No. address (name) ]
 			System.out.println("Bluetooth Devices: ");
 
@@ -67,7 +68,8 @@ public class BluetoothClient implements DiscoveryListener {
 			}
 
 			System.out.print("Choose Device index: ");
-			BufferedReader bReader=new BufferedReader(new InputStreamReader(System.in));
+
+			BufferedReader bReader = new BufferedReader(new InputStreamReader(System.in));
 
 			String chosenIndex=bReader.readLine();
 			int index=Integer.parseInt(chosenIndex.trim());
