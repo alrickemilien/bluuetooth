@@ -5,7 +5,7 @@
  */
 package com.cotep.bluetooth.plugin;
 
-
+import java.util.UUID;
 import java.io.*;
 import javax.bluetooth.*;
 import javax.microedition.io.*;
@@ -25,9 +25,7 @@ public class BluetoothServer implements Runnable {
 
 	// The uid of the service, it has to be unique,
 	// It can be generated randomly
-	public final UUID uuid = new UUID(
-			"27012f0c68af4fbf8dbe6bbaf7aa432a",
-			false);
+	public final javax.bluetooth.UUID uuid =  new javax.bluetooth.UUID("27012f0c68af4fbf8dbe6bbaf7aa432a", false);
 
 	// The name of the service
 	public final String name = "BluetoothChat";
@@ -40,7 +38,7 @@ public class BluetoothServer implements Runnable {
 
 	LocalDevice local = null;
 	StreamConnectionNotifier server = null;
-	StreamConnection conn = null;
+	StreamConnection connection = null;
 
 	public BluetoothServer() {
 		inputBuffer=new byte[1024];
@@ -111,20 +109,21 @@ public class BluetoothServer implements Runnable {
 		try {
 			while(true) {
 				System.out.println("Start advertising service...");
+				System.out.println(uuid.toString());
 
 				server = (StreamConnectionNotifier)Connector.open(url);
 
 				System.out.println("Waiting for incoming connection on url="+url);
 
-				conn = server.acceptAndOpen();
+				connection = server.acceptAndOpen();
 
 				isConnected=1;
 
 				System.out.println("Client Connected...");
 
-				DataInputStream din = new DataInputStream(conn.openInputStream());
+				DataInputStream din = new DataInputStream(connection.openInputStream());
 
-				DataOutputStream dout = new DataOutputStream(conn.openOutputStream());
+				DataOutputStream dout = new DataOutputStream(connection.openOutputStream());
 
 				lastReceivedTime = System.currentTimeMillis();
 
@@ -185,7 +184,7 @@ public class BluetoothServer implements Runnable {
 				  System.out.println("Received " + cmd);
 				  }*/
 				din.close();
-				conn.close();
+				connection.close();
 				server.close();
 
 				if(closeRequest==1) break;
@@ -206,7 +205,7 @@ public class BluetoothServer implements Runnable {
 			// Sets the way devices are recognized with bluetooth
 			local.setDiscoverable(DiscoveryAgent.GIAC);
 
-			System.out.println(local.getProperty("bluetooth.api.version"));
+			System.out.println("Bluetooth API version : " + local.getProperty("bluetooth.api.version"));
 		} catch (BluetoothStateException ex) {
 			System.out.println("Cannot get local device : " + ex.toString());
 			return;

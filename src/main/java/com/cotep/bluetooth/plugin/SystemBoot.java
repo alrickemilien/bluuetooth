@@ -16,9 +16,22 @@ public class SystemBoot {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        System.out.println("SystemBoot ...");
+      for (String arg : args) {
+    System.out.println(arg);
+}
 
-        new BluetoothServer().run();
+        if (args[0].equals("client")) {
+          new BluetoothClient().run();
+
+          return;
+        }
+
+        if (args[0].equals("server")) {
+          new BluetoothServer().run();
+
+          return;
+        }
+
+        System.out.println("Args: [client|server]");
     }
-    
 }

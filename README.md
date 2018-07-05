@@ -1,9 +1,9 @@
 # bluetooth-plugin
 
-Make sure you have a 64bit JVM !
+Run on jdk-1.8
 
-#build
+# Build
 mvn clean compile assembly:single
 
-#run
-./run
+# Run on device
+sudo ./run
